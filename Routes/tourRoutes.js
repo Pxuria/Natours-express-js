@@ -5,7 +5,6 @@ const {
   getTour,
   updateTour,
   deleteTour,
-  checkID,
   checkBody,
 } = require("../Controllers/tourController");
 
