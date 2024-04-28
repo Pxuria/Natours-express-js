@@ -9,7 +9,7 @@ exports.getAllTours = async (req, res) => {
     // Build Query
     // 1A) Filtering
     const queries = { ...req.query };
-    const excludeFields = ["page", "sort", "limit", "fields"];
+    const excludeFields = ["page", "sort", "perPage", "fields"];
     excludeFields.forEach((el) => delete queries[el]);
 
     // 1B) Advanced Filtering
@@ -29,6 +29,18 @@ exports.getAllTours = async (req, res) => {
       const fields = req.query.fields.split(",").join(" ");
       query = query.select(fields);
     } else query = query.select("");
+
+    // 4) pagination
+    const page = req.query.page * 1 || 1;
+    const perPage = req.query.perPage * 1 || 100;
+    const skip = (page - 1) * perPage;
+
+    query = query.skip(skip).limit(perPage);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error("This page doesn't exist");
+    }
 
     // Execute query
     const tours = await query;
