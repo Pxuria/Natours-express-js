@@ -5,7 +5,35 @@ const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-si
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    console.log(req.query);
+    // Build Query
+    // 1) Filtering
+    const queries = { ...req.query };
+    const excludeFields = ["page", "sort", "limit", "fields"];
+    excludeFields.forEach((el) => delete queries[el]);
+
+    // 2) Advanced Filtering
+    let queryStr = JSON.stringify(queries);
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
+
+    const query = Tour.find(JSON.parse(queryStr));
+    // Execute query
+    const tours = await query;
+
+    // first way
+    // const query = Tour.find({
+    //   duration: 5,
+    //   difficulty: 'easy',
+    // });
+
+    // sec way
+    // const tours = await Tour.find()
+    //   .where("duration")
+    //   .equals(req.query.duration)
+    //   .where("difficulty")
+    //   .equals(req.query.difficulty);
+
+    // send response
     res.status(200).json({
       status: "success",
       results: tours.length,
