@@ -3,13 +3,19 @@ const Tour = require("../models/tourModel");
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, "utf-8"));
 
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = "5";
+  req.query.sort = "-ratingsAverage,price";
+  req.query.fields = "name,price,ratingsAverage,summary,difficulty,";
+  next();
+};
 exports.getAllTours = async (req, res) => {
   try {
     console.log(req.query);
     // Build Query
     // 1A) Filtering
     const queries = { ...req.query };
-    const excludeFields = ["page", "sort", "perPage", "fields"];
+    const excludeFields = ["page", "sort", "limit", "fields"];
     excludeFields.forEach((el) => delete queries[el]);
 
     // 1B) Advanced Filtering
@@ -32,10 +38,10 @@ exports.getAllTours = async (req, res) => {
 
     // 4) pagination
     const page = req.query.page * 1 || 1;
-    const perPage = req.query.perPage * 1 || 100;
-    const skip = (page - 1) * perPage;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
 
-    query = query.skip(skip).limit(perPage);
+    query = query.skip(skip).limit(limit);
 
     if (req.query.page) {
       const numTours = await Tour.countDocuments();
